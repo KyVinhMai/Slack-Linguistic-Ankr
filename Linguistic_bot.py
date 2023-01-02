@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from flask import Flask
 from slackeventsapi import SlackEventAdapter
 
+import Input_parsing as ip
+
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
@@ -27,8 +29,20 @@ def message(payload):
     user_id = event.get("user") #Grabs user id from event key
     text = event.get("text")
 
-    if BOT_ID != user_id:
-        client.chat_postMessage(channel= channel_id, text= text)
+    response  = None
+    if "Q:" and "A:" in text:
+        response = ip.import_full_question_answer(text)
+
+    if "Q" and not "A:"  in text:
+        response = ip.import_question(text)
+        message(payload)
+
+    if not "Q:" and "A:" in text:
+        response += ip.import_answer(text)
+
+    print(response)
+    # if BOT_ID != user_id:
+    #     client.chat_postMessage(channel= channel_id, text= text)
 
 
 if __name__ == "__main__":
